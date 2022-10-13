@@ -1,1 +1,1 @@
-My first try of bevy engine except hello world.
+My first try of Bevy engine, except hello world.
