@@ -1,17 +1,15 @@
+mod gravity;
+
 use bevy::prelude::*;
 
 #[derive(Component)]
-struct Mass(f32);
+pub struct Mass(f32);
 
 #[derive(Component)]
-struct Speed(Vec3);
-
-fn gravity(time: Res<Time>, mut movables_query: Query<&mut Speed>, massive_query: Query<&Mass>) {
-    unimplemented!("implement gravity!")
-}
+pub struct Speed(Vec3);
 
 fn movement_system(time: Res<Time>, mut movable_qery: Query<(&mut Transform, &Speed)>) {
-    unimplemented!("implement movement system!")
+    unimplemented!("implement movement system!");
 }
 
 fn setup(
@@ -29,6 +27,7 @@ fn setup(
             })),
             material: materials.add(StandardMaterial {
                 base_color: Color::rgb(1.0, 0.6, 0.6),
+                //emissive: Color::rgba_linear(1.0, 1.0, 1.0, 0.0),
                 ..default()
             }),
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
@@ -36,6 +35,25 @@ fn setup(
         })
         .insert(Mass(1.0))
         .insert(Speed(Vec3::new(0.0, 0.0, 0.0)));
+
+    commands
+        .spawn_bundle(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::UVSphere {
+                radius: 0.8,
+                sectors: 128,
+                stacks: 64,
+            })),
+            material: materials.add(StandardMaterial {
+                base_color: Color::rgb(1.0, 0.6, 0.6),
+
+                ..default()
+            }),
+            transform: Transform::from_xyz(2.0, 3.0, 1.0),
+            ..default()
+        })
+        .insert(Mass(1.0))
+        .insert(Speed(Vec3::new(0.0, 0.0, 0.0)));
+
     //light
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
@@ -43,7 +61,7 @@ fn setup(
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 6.0, 6.0),
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
         ..default()
     });
 
