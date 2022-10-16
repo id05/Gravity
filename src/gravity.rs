@@ -3,15 +3,19 @@ pub mod gravity {
 
     use crate::{Mass, Speed};
 
-    const G: f32 = 6.67E-11;
+    const G: f32 = 6.67430E-11;
+    const GRAVITY_BOOSTER: f32 = 2000000f32;
 
     //rough calculation of impulse without integration
 
     fn gforce(m1: f32, m2: f32, r: f32) -> f32 {
-        G * (m1 * m2) / (r * r)
+        GRAVITY_BOOSTER * G * (m1 * m2) / (r * r)
     }
 
-    pub fn gravity(time: Res<Time>, mut massive_query: Query<(&Mass, &mut Speed, &Transform)>) {
+    pub fn gravity_system(
+        time: Res<Time>,
+        mut massive_query: Query<(&Mass, &mut Speed, &Transform)>,
+    ) {
         let mut vec: Vec<(&Mass, Mut<Speed>, &Transform)> = massive_query.iter_mut().collect();
         for i in 0..vec.len() {
             //first i-1 elements are already processed, so they will be clipped and element i taken
@@ -25,7 +29,7 @@ pub mod gravity {
                 let impulse_vec = gforce(
                     mass1.0,
                     mass2.0,
-                    pos1.translation.distance(pos2.translation),
+                    (pos1.translation - pos2.translation).length(),
                 ) * time.delta_seconds()
                     * axis;
 
