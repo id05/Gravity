@@ -21,6 +21,10 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands
+        .spawn()
+        .insert(Transform::from_translation(Vec3::ZERO))
+        .insert(Mass(1000.0));
+    commands
         .spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::UVSphere {
                 radius: 0.2,

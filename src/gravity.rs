@@ -1,10 +1,11 @@
 pub mod gravity {
-    use bevy::prelude::{Mut, Query, Res, Time, Transform};
+    use bevy::prelude::{Mut, Query, Res, Time, Transform, Vec3};
+    //use glam::f32::Vec3;
 
     use crate::{Mass, Speed};
 
     const G: f32 = 6.67430E-11;
-    const GRAVITY_BOOSTER: f32 = 2000000f32;
+    const GRAVITY_BOOSTER: f32 = 1000000f32;
 
     //rough calculation of impulse without integration
 
@@ -14,30 +15,26 @@ pub mod gravity {
 
     pub fn gravity_system(
         time: Res<Time>,
-        mut massive_query: Query<(&Mass, &mut Speed, &Transform)>,
+        mut movables: Query<(&Mass, &mut Speed, &Transform)>,
+        attractors: Query<(&Mass, &Transform)>,
     ) {
-        let mut vec: Vec<(&Mass, Mut<Speed>, &Transform)> = massive_query.iter_mut().collect();
-        for i in 0..vec.len() {
-            //first i-1 elements are already processed, so they will be clipped and element i taken
-            let (v1, v2) = vec.split_at_mut(i + 1);
+        for (mass1, mut speed, pos1) in movables.iter_mut() {
+            speed.0 += attractors
+                .iter()
+                .filter(|(_, pos2)| pos2.translation != pos1.translation)
+                .map(|(mass2, pos2)| {
+                    let axis = (pos2.translation - pos1.translation).normalize(); //norm vector from pos1 to pos2 for calculation of vector of impulse
 
-            let (mass1, speed1, pos1) = &mut v1[i];
+                    let impulse_vec = gforce(
+                        mass1.0,
+                        mass2.0,
+                        (pos1.translation - pos2.translation).length(),
+                    ) * time.delta_seconds()
+                        * axis;
 
-            for (mass2, speed2, pos2) in v2 {
-                let axis = (pos2.translation - pos1.translation).normalize(); //norm vector from pos1 to pos2 for calculation of vector of impulse
-
-                let impulse_vec = gforce(
-                    mass1.0,
-                    mass2.0,
-                    (pos1.translation - pos2.translation).length(),
-                ) * time.delta_seconds()
-                    * axis;
-
-                speed1.0 += impulse_vec / mass1.0;
-                // negate vector of impulse because is points FROM pos1
-                // and we need it pointing TO pos1
-                speed2.0 += (-impulse_vec) / mass2.0;
-            }
+                    impulse_vec / mass1.0
+                })
+                .fold(Vec3::new(0f32, 0f32, 0f32), |acc, x| acc + x);
         }
     }
 }
