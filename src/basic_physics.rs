@@ -46,7 +46,6 @@ pub fn movement_system(time: Res<Time>, mut movable_qery: Query<(&mut Transform,
 pub mod gravity {
 
     use bevy::prelude::{Query, Res, Time, Transform, Vec3};
-    //use glam::f32::Vec3;
 
     use crate::basic_physics::{Mass, Velocity};
 
@@ -55,7 +54,7 @@ pub mod gravity {
 
     //rough calculation of impulse without integration
 
-    fn gforce(m1: f32, m2: f32, r: f32) -> f32 {
+    pub fn gforce(m1: f32, m2: f32, r: f32) -> f32 {
         GRAVITY_MODIFYER * G * (m1 * m2) / (r * r)
     }
 
