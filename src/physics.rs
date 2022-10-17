@@ -37,7 +37,10 @@ pub fn collision_system(mut bounce_qery: Query<(&Mass, &BouncingBall, &Transform
     }
 }
 
-pub fn movement_system(time: Res<Time>, mut movable_qery: Query<(&mut Transform, &Velocity)>) {
+pub fn movement_system(
+    time: Res<Time>,
+    mut movable_qery: Query<(&mut Transform, &Velocity), Without<Camera>>,
+) {
     for (mut pos, vel) in movable_qery.iter_mut() {
         pos.translation += vel.0 * time.delta_seconds();
     }
@@ -50,7 +53,7 @@ pub mod gravity {
     use crate::physics::{Mass, Velocity};
 
     const G: f32 = 6.67430E-11;
-    const GRAVITY_MODIFYER: f32 = 200000f32;
+    const GRAVITY_MODIFYER: f32 = 2000000f32;
 
     //rough calculation of impulse without integration
 

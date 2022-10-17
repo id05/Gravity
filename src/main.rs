@@ -1,6 +1,4 @@
-//mod gravity;
-
-use bevy::input::mouse::{MouseMotion, MouseWheel};
+use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 
 pub mod physics;
@@ -43,27 +41,61 @@ impl BallBundle {
     }
 }
 
-const SCALE_MULT: f32 = -0.5;
+const CAMERA_SPEED_MULT: f32 = 5.0;
 
-fn camera_scale(
-    mut camera: Query<&mut Transform, With<Camera>>,
-    mut scroll_evr: EventReader<MouseWheel>,
+fn camera_movement(
+    time: Res<Time>,
+    mut movable_qery: Query<(&mut Transform, &Velocity), With<Camera>>,
 ) {
-    if let Ok(mut cam) = camera.get_single_mut() {
-        for ev in scroll_evr.iter() {
-            let forward = cam.forward();
-            cam.translation += ev.y * SCALE_MULT * forward;
-        }
+    for (mut pos, vel) in movable_qery.iter_mut() {
+        let vel = pos.rotation.mul_vec3(vel.0);
+        pos.translation += vel * time.delta_seconds() * CAMERA_SPEED_MULT;
     }
 }
 
-const ROTATION_SPEED: f32 = 0.01;
+fn keyboard_controls(mut camera: Query<&mut Velocity, With<Camera>>, keys: Res<Input<KeyCode>>) {
+    use KeyCode::{LControl, Space, A, D, S, W};
+    if let Ok(mut vel) = camera.get_single_mut() {
+        keys.get_just_pressed().for_each(|key| {
+            match key {
+                W => vel.0 += Vec3::NEG_Z,
+                A => vel.0 += Vec3::NEG_X,
+                S => vel.0 += Vec3::Z,
+                D => vel.0 += Vec3::X,
+                LControl => vel.0 += Vec3::NEG_Y,
+                Space => vel.0 += Vec3::Y,
+                _ => {}
+            };
+            //vel.0 += direction * CAMERA_SPEED_MULT;
+        });
+        keys.get_just_released().for_each(|key| {
+            match key {
+                W => vel.0 -= Vec3::NEG_Z,
+                A => vel.0 -= Vec3::NEG_X,
+                S => vel.0 -= Vec3::Z,
+                D => vel.0 -= Vec3::X,
+                LControl => vel.0 -= Vec3::NEG_Y,
+                Space => vel.0 -= Vec3::Y,
+                _ => {}
+            };
+            //vel.0 -= direction * CAMERA_SPEED_MULT;
+        });
+        //println!("camera speed: {}", vel.0);
+    }
+}
+
+const ROTATION_OFFSET: Vec3 = Vec3 {
+    x: 0.0,
+    y: 0.0,
+    z: -15.0,
+};
+const ROTATION_SPEED: f32 = 0.005;
 fn camera_rotate(
     mut camera: Query<&mut Transform, With<Camera>>,
     buttons: Res<Input<MouseButton>>,
     mut motion_evr: EventReader<MouseMotion>,
 ) {
-    if let Ok(mut cam) = camera.get_single_mut() {
+    if let Ok(mut camera) = camera.get_single_mut() {
         if buttons.pressed(MouseButton::Left) {
             for drag in motion_evr.iter() {
                 let drag_vec = Vec3 {
@@ -72,11 +104,13 @@ fn camera_rotate(
                     z: 0.0,
                 };
                 let angle = drag_vec.length() * ROTATION_SPEED;
-                let axis = cam
+                let axis = camera
                     .forward()
-                    .cross(cam.rotation.mul_vec3(drag_vec))
+                    .cross(camera.rotation.mul_vec3(drag_vec))
                     .normalize();
-                cam.rotate_around(Vec3::ZERO, Quat::from_axis_angle(axis, angle));
+                let pos = camera.translation;
+                let offset = camera.rotation.mul_vec3(ROTATION_OFFSET);
+                camera.rotate_around(pos + offset, Quat::from_axis_angle(axis, angle));
             }
         }
     }
@@ -93,16 +127,21 @@ fn setup(
         sectors: 128,
         stacks: 64,
     }));
-    let mat = materials.add(StandardMaterial {
+    /*let mat = materials.add(StandardMaterial {
         base_color: Color::rgb(1.0, 0.3, 1.0),
 
         ..default()
     });
+    */
 
-    for _ in 0..5 {
+    for _ in 0..=12 {
         commands.spawn_bundle(BallBundle::new(
             sphere_handle.clone(),
-            mat.clone(),
+            materials.add(StandardMaterial {
+                base_color: Color::rgb(rng.gen::<f32>(), rng.gen::<f32>(), rng.gen::<f32>()),
+
+                ..default()
+            }),
             40000.0,
             0.4,
             Vec3::new(
@@ -128,14 +167,16 @@ fn setup(
     //embient
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
-        brightness: 0.02,
+        brightness: 0.10,
     });
 
     //camera
-    commands.spawn_bundle(Camera3dBundle {
-        transform: Transform::from_xyz(15.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    commands
+        .spawn_bundle(Camera3dBundle {
+            transform: Transform::from_xyz(15.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
+        })
+        .insert(Velocity(Vec3::ZERO));
 }
 
 fn main() {
@@ -145,7 +186,8 @@ fn main() {
         .add_system(movement_system)
         .add_system(gravity_system)
         .add_system(collision_system)
-        .add_system(camera_scale)
+        .add_system(keyboard_controls)
         .add_system(camera_rotate)
+        .add_system(camera_movement)
         .run();
 }
