@@ -43,6 +43,7 @@ impl BallBundle {
 
 const CAMERA_SPEED_MULT: f32 = 5.0;
 
+//camera uses special movement system, where velocity defined relativly to camera orientation
 fn camera_movement(
     time: Res<Time>,
     mut movable_qery: Query<(&mut Transform, &Velocity), With<Camera>>,
@@ -66,7 +67,6 @@ fn keyboard_controls(mut camera: Query<&mut Velocity, With<Camera>>, keys: Res<I
                 Space => vel.0 += Vec3::Y,
                 _ => {}
             };
-            //vel.0 += direction * CAMERA_SPEED_MULT;
         });
         keys.get_just_released().for_each(|key| {
             match key {
@@ -78,9 +78,7 @@ fn keyboard_controls(mut camera: Query<&mut Velocity, With<Camera>>, keys: Res<I
                 Space => vel.0 -= Vec3::Y,
                 _ => {}
             };
-            //vel.0 -= direction * CAMERA_SPEED_MULT;
         });
-        //println!("camera speed: {}", vel.0);
     }
 }
 
@@ -127,12 +125,6 @@ fn setup(
         sectors: 128,
         stacks: 64,
     }));
-    /*let mat = materials.add(StandardMaterial {
-        base_color: Color::rgb(1.0, 0.3, 1.0),
-
-        ..default()
-    });
-    */
 
     for _ in 0..=12 {
         commands.spawn_bundle(BallBundle::new(
