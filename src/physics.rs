@@ -47,7 +47,7 @@ pub mod gravity {
 
     use bevy::prelude::{Query, Res, Time, Transform, Vec3};
 
-    use crate::basic_physics::{Mass, Velocity};
+    use crate::physics::{Mass, Velocity};
 
     const G: f32 = 6.67430E-11;
     const GRAVITY_MODIFYER: f32 = 200000f32;

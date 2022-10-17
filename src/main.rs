@@ -3,10 +3,10 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 
-pub mod basic_physics;
+pub mod physics;
 
-use crate::basic_physics::gravity::*;
-use crate::basic_physics::*;
+use crate::physics::gravity::*;
+use crate::physics::*;
 use rand::prelude::*;
 
 #[derive(Bundle)]

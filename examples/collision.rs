@@ -1,7 +1,7 @@
-#[path = "../src/basic_physics.rs"]
-pub mod basic_physics;
+#[path = "../src/physics.rs"]
+pub mod physics;
 
-use crate::basic_physics::*;
+use crate::physics::*;
 
 use bevy::prelude::*;
 
