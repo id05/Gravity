@@ -52,13 +52,13 @@ pub mod gravity {
 
     use crate::physics::{Mass, Velocity};
 
-    const G: f32 = 6.67430E-11;
     const GRAVITY_MODIFYER: f32 = 2000000f32;
+    const G: f32 = 6.67430E-11 * GRAVITY_MODIFYER;
 
     //rough calculation of impulse without integration
 
     pub fn gforce(m1: f32, m2: f32, r: f32) -> f32 {
-        GRAVITY_MODIFYER * G * (m1 * m2) / (r * r)
+        G * (m1 * m2) / (r * r)
     }
 
     pub fn gravity_system(
